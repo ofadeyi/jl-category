@@ -1,0 +1,96 @@
+= Developer Test
+
+NOTE: All the commands listed in this document assumes them been run on a Linux/macOS system and that they
+are executed from the root of the project folder
+
+== Introduction
+This document provides a brief guide on how to run the project
+
+== Languages and Frameworks
+This section lists all the languages, frameworks and other technologies used:
+
+. link:https://openjdk.java.net/[Java]: A statically typed language on the JVM.
+. link:https://spring.io/projects/spring-boot/[Spring-Boot]: An opinionated framework for building production-ready applications (this project uses Spring WebFlux)
+. link:https://junit.org/junit4/[JUnit]: A testing framework for Java applications.
+. link:http://wiremock.org/[WireMock]: A simulator for HTTP-based APIs
+. link:https://maven.apache.org/[Maven]: A project management and build tool for the JVM.
+. link:https://pmd.github.io/[PMD]: A static code analyzer.
+. link:https://www.eclemma.org/jacoco/[JaCoCo]: A code coverage for Java
+
+== Compile, Test and Code Analysis
+NOTE: A valid installation of the JDK is required for building, testing and analysing this project.
+
+As listed in the section above this project is a *Maven* based project but does not require Maven
+to be installed on the system where the project is going to be built because of the _maven wrapper_ in the form of
+*mvnw* (for Linux/macOS) and *mvnw.cmd* (for Windows) which will download the required version of
+Maven (if not available) and then perform the build.
+
+In order to _compile, test and code analysis_ run the following command:
+
+....
+./mvnw clean verify
+....
+
+This will perform all that is required to _compile, test, package (build the final artefact jar/war) and
+verify (run static code analysis in this case running PMD and JaCoCo)_.
+The various output can be found in the */target* folder, in particular, the following sub-folder:
+
+ . _/target/surefire-reports_ we have the result of running all the unit test available in the project
+ . _/target/site_ we have the reports from the static code analysis
+
+== Run
+For security best practices this project does not have and _secrets (passwords, api-keys, etc..)_ stored inside the
+_application.yaml_ file and will require changes to be made to this file in order to be able to run this project locally.
+
+=== Mocking JL API
+This project can be executed/tested locally without connecting it to a version of the JL API by using *WireMock* in
+standalone mode. Please follow the steps below:
+
+. Start *WireMock* with the following command:
++
+....
+ java -jar ~/.m2/repository/com/github/tomakehurst/wiremock-standalone/2.23.2/wiremock-standalone-2.23.2.jar --port 8889 --root-dir src/test/resources/
+....
+
+. Modify _src/main/resources/application.yaml_ and change the following attributes:
+.. *jl.host* to _http://localhost:8889_ (if a different port is used for WireMock in step1 please use that port here)
+.. *jl.apiKey* to _6ikGRBoy6eTHA58RaG097Fma2ALHCAAs_ (fake api-key used for this mode)
+
+. Run the application (via Maven through the SpringBoot Maven plugin) with:
++
+....
+./mvnw spring-boot:run
+....
+
+=== Staging/Live JL API
+To use a staging/live JL API please follow follow the steps below:
+
+
+. Modify _src/main/resources/application.yaml_ and change the following attributes:
+.. *jl.host* to _staging/live api base uri_
+.. *jl.apiKey* to _staging/live api-key_
+
+. Run the application (via Maven through the SpringBoot Maven plugin) with:
++
+....
+./mvnw spring-boot:run
+....
+
+== Calling the API
+The application exposes a single *Products resource* at _/products_ endpoint and the following three query parameters:
+
+. _categoryId_ this determines the category of products from the JL API that the application is going to query.
+. _reduced_ this determines if the query should return reduced items or not (as requested this is the default behaviour).
+Possible values are *true/false*.
+. _labelType_ this determines how the *priceLabel* field in the response items will be formatted.
+Possible values are *ShowWasNow / ShowWasThenNow / ShowPercDscount*
+
+Bellow are examples of requests using _link:https://curl.haxx.se/[cURL] and link:https://httpie.org/[HTTPie]_
+....
+cURL:
+
+curl 'http://localhost:8888/products?categoryId=600001506&reduced=true&labelType=ShowPercDscount'
+
+HTTPie:
+http localhost:8888/products categoryId==600001506 reduced==true
+....
