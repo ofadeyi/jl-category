@@ -1,0 +1,10 @@
+server:
+  port: 8888
+
+jl:
+  host:         http://localhost:8889
+  port:         8889
+  resource:     v1/categories
+  categoryId:   600001506
+  subResource:  products
+  apiKey:       6ikGRBoy6eTHA58RaG097Fma2ALHCAAs

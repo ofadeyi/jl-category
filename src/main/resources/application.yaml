@@ -1,0 +1,10 @@
+server:
+  port: 8888
+
+jl:
+  host:         <<change-me>>
+  resource:     v1/categories
+  categoryId:   600001506
+  subResource:  products
+  apiKey:       <<change-me>>
+
